@@ -1,0 +1,168 @@
+<head>
+  <!-- Plotly.js -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--===============================================================================================-->	
+	<link rel="icon" type="image/png" href="images/icons/favicon.ico"/>
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/bootstrap/css/bootstrap.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/animate/animate.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/select2/select2.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/perfect-scrollbar/perfect-scrollbar.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="css/util.css">
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+
+<body>
+  
+  
+  
+		<div class="container-table100" >
+		<div id="myDiv" style="margin-right:10px;"><!-- Plotly chart will be drawn inside this DIV --></div>
+			<div class="wrap-table100" ">
+				<div class="table100 ver1 m-b-110" style="width:300px; margin: auto">
+					<table data-vertable="ver1">
+						<thead>
+							<tr class="row100 head">	
+								<th class="column100 column2" data-column="column2" >Ortalama Hata</th>
+								<!--<th class="column100 column2" data-column="column2" >Ortalama Trila Hata</th>-->
+							</tr>
+						</thead>
+						<tbody>
+							<tr class="row100">
+								<td class="column100 column1" data-column="column1" id="hata" ></td>
+								<!--<td class="column100 column1" data-column="column1" id="hataTrila" ></td>-->
+				
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+			</div>
+		</div>
+
+  
+  <script>
+  var trace2,trace1,trace3;
+ Plotly.d3.csv('http://192.168.1.109/yeni/dataZigzag.csv', function(err, rows){
+		  function unpack(rows, key) {
+			  return rows.map(function(row) 
+			  {return row[key]; });
+		  }
+	
+			trace2 = {
+			  type: 'scatter',
+			  x: unpack(rows, 'X'),
+			  y: unpack(rows, 'Y'),
+			  mode: 'lines+markers', 
+			  name: 'ABC',
+			  line: {shape: 'spline',
+			  color: 'rgb(0, 0, 0)'}, 
+			};
+			trace3 = {
+			  type: 'scatter',
+			  x: unpack(rows, 'TX'),
+			  y: unpack(rows, 'TY'),
+			  mode: 'lines+markers', 
+			  name: 'TRILA',
+			  line: {shape: 'spline',
+			  color: 'rgb(255, 0, 0)'}, 
+			};
+			
+			
+
+	});
+	
+	
+  Plotly.d3.csv('http://192.168.1.109/yeni/data.csv', function(err, rows){
+			  function unpack(rows, key) {
+				  return rows.map(function(row) 
+				  {return row[key]; });
+			  }
+			function uret(sayi,aralik){
+				var x = new Array();
+				var art = aralik / sayi;
+				for(var i = 0; i < sayi; i++){
+					x[i] = art;
+					art += aralik / sayi;
+					//console.log("x :" + x[i]);
+				}
+				
+				return x;
+			}
+			
+			function uret2(sayi,aralik){
+				var y = new Array();
+				var art = aralik / sayi;
+				for(var i = 0; i < parseInt(sayi/2); i++){
+					y[i] = art*2;
+					art += aralik / sayi;
+					//console.log("y :" + y[i]);
+				}	
+								
+				console.log("y :" + y.length);				
+				for(var i = parseInt(sayi/2); i < sayi; i++){
+					y[i] = art*2;
+					art -= aralik / sayi;
+					//console.log("y :" + y[i]);
+				}
+				//console.log("y :" + y.length);
+				return y;
+			}
+			
+		
+			trace1 = {
+			  type: 'scatter',
+			  x: uret(trace2["x"].length,12),
+			  y: uret2(trace2["y"].length,6),
+			  mode: 'lines+markers', 
+			  name: 'REAL',
+			  line: {shape: 'spline',
+			  color: 'rgb(219, 64, 82)'}, 
+			};
+
+			
+			var sum = 0;
+			for (var i = 0; i < trace1["x"].length-1; i++) {
+				var x = Math.pow(Math.abs(trace1["x"][i] - trace2["x"][i]),2);
+				var y = Math.pow(Math.abs(trace1["y"][i] - trace2["y"][i]),2);
+				var dist = Math.sqrt(x + y);
+				
+				//console.log(trace2["x"][i] + " " + trace2["y"][i]);
+				console.log(trace2["y"][i]);
+			
+				sum += dist;
+			}
+		
+			var sum2 = 0;
+			for (var i = 0; i < trace1["x"].length-1; i++) {
+				var x = Math.pow(Math.abs(trace1["x"][i] - trace3["x"][i]),2);
+				var y = Math.pow(Math.abs(trace1["y"][i] - trace3["y"][i]),2);
+				var dist = Math.sqrt(x + y);
+				
+			
+				sum2 += dist;
+			}
+			
+			document.getElementById("hata").innerHTML = sum / trace2["x"].length;
+			//document.getElementById("hataTrila").innerHTML = sum2 / trace2["x"].length;
+			
+			var data = [trace1, trace2];
+			
+			Plotly.newPlot('myDiv', data, {}, {showSendToCloud: true});
+			
+	});
+	
+	
+			
+	
+	
+  </script>
+</body>
